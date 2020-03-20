@@ -1,0 +1,65 @@
+version: '3.3'
+services:
+  web:
+   image: nginx:latest
+   container_name: nginx
+   ports:
+   - "80:80"
+   volumes:
+   - ./sites:/sites
+   - ./conf.d:/etc/nginx/conf.d:cached
+   links:
+    - php
+  php:
+    build: build/php
+    container_name: php
+    volumes:
+    - ./sites:/sites:cached
+    links:
+    - database
+    - database_57
+    environment:
+    - SET_CONTAINER_TIMEZONE=true
+    - TZ=Europe/Amsterdam   
+  php_56:
+    build: build/php56
+    container_name: php_56
+    volumes:
+    - ./sites:/sites:cached
+    links:
+    - database
+    - database_57
+  database_57:
+    container_name: database_57
+    image: mysql:5.7
+    volumes:
+      - ./backup:/backup:cached
+      - ./mysql_data_57:/var/lib/mysql:cached
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - '3307:3306'
+    ulimits:
+      nofile:
+        soft: 20000
+        hard: 40000
+  database:
+    container_name: database
+    image: mysql:latest
+    volumes:
+      - ./backup:/backup:cached
+      - ./mysql_data:/var/lib/mysql:cached
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    ulimits:
+      nofile:
+        soft: 20000
+        hard: 40000
+volumes:
+ backup:
+ mysql_data:
+ sites:
